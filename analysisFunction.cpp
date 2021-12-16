@@ -1,4 +1,5 @@
 #include <cmath>
+#include <ctime>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -50,7 +51,7 @@ double angsd::addProtectN(double a[],int len){
   return log(sumVal) + maxVal;
 }
 
-double angsd::getMax(double a,double b, double c){ 
+double angsd::getMax(double a,double b, double c){
     //get the maximum value of a, b and c
     double maxVal;// = std::max(a,std::max(b,c));
     if(a>b&&a>c)
@@ -79,7 +80,7 @@ angsd::Matrix<double> angsd::getMatrix(const char *name,int doBinary,int lens){
   }
   const char* delims = " \t";
   std::ifstream pFile(name,std::ios::in);
-  
+
   char buffer[lens];
   std::list<double *> rows;
   int ncols =0;
@@ -91,9 +92,9 @@ angsd::Matrix<double> angsd::getMatrix(const char *name,int doBinary,int lens){
     std::list<double> items;
     while(tok!=NULL){
       if(doBinary)
-	items.push_back(atoi(tok));
+        items.push_back(atoi(tok));
       else
-	items.push_back(atof(tok));
+        items.push_back(atof(tok));
       tok = strtok(NULL,delims);
     }
     //fprintf(stderr,"[%s] ncols:%lu\n",__FUNCTION__,items.size());
@@ -103,14 +104,14 @@ angsd::Matrix<double> angsd::getMatrix(const char *name,int doBinary,int lens){
     for(std::list<double>::iterator it=items.begin();it!=items.end();it++)
       drows[i++]  = *it;
     rows.push_back(drows);
-    
+
   }
   //  fprintf(stderr,"%s nrows:%lu\n",__FUNCTION__,rows.size());
   double **data = new double*[rows.size()];
   int i=0;
   for(std::list<double*>::iterator it=rows.begin();it!=rows.end();it++)
     data[i++]  = *it;
-  
+
   Matrix<double> retMat;
   retMat.matrix=data;
   retMat.x = rows.size();
@@ -125,7 +126,7 @@ angsd::Matrix<int> angsd::getMatrixInt(const char *name,int lens){
   }
   const char* delims = " \t";
   std::ifstream pFile(name,std::ios::in);
-  
+
   char buffer[lens];
   std::list<int *> rows;
   int ncols =0;
@@ -136,7 +137,7 @@ angsd::Matrix<int> angsd::getMatrixInt(const char *name,int lens){
     char *tok = strtok(buffer,delims);
     std::list<int> items;
     while(tok!=NULL){
-	items.push_back(atoi(tok));
+        items.push_back(atoi(tok));
       tok = strtok(NULL,delims);
     }
     //fprintf(stderr,"[%s] ncols:%lu\n",__FUNCTION__,items.size());
@@ -146,14 +147,14 @@ angsd::Matrix<int> angsd::getMatrixInt(const char *name,int lens){
     for(std::list<int>::iterator it=items.begin();it!=items.end();it++)
       drows[i++]  = *it;
     rows.push_back(drows);
-    
+
   }
   //  fprintf(stderr,"%s nrows:%lu\n",__FUNCTION__,rows.size());
   int **data = new int*[rows.size()];
   int i=0;
   for(std::list<int*>::iterator it=rows.begin();it!=rows.end();it++)
     data[i++]  = *it;
-  
+
   Matrix<int> retMat;
   retMat.matrix=data;
   retMat.x = rows.size();
@@ -186,7 +187,7 @@ void angsd::printMatrix(Matrix<double> mat,FILE *file){
     for(int yi=0;yi<mat.y;yi++)
       fprintf(file,"%f\t",mat.matrix[xi][yi]);
     fprintf(file,"\n");
-  }    
+  }
 }
 
 //have to implement method for comparing char* in std::map
@@ -215,7 +216,7 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
   int hasMissing = 0;
   int hasID_2 = 0;
   int hasPheno = 0;
-  
+
   // for reading in specified phenotypes and covariates
   std::map <char*,int, cmp_strEmil> pheMap;
   std::map <char*,int, cmp_strEmil> covMap;
@@ -224,12 +225,12 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
   std::map <int,int> covMap2;
 
   const char* delims2 = ",";
-  
+
   if(whichPhe!=NULL){
     char* id = strtok(whichPhe,delims2);
     while(id!=NULL){
       pheMap[strdup(id)] = 1;
-      id = strtok(NULL,delims2);      
+      id = strtok(NULL,delims2);
     }
   }
 
@@ -240,13 +241,13 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
       id = strtok(NULL,delims2);
     }
   }
-  
+
   //read first line to know how many cols
   pFile.getline(buffer,lens);
   int ncols=0;
   char* tmp = strtok(buffer,delims);
   while(tmp!=NULL){
-    
+
     if(ncols==0 && (strcmp(tmp,"ID")!=0 && strcmp(tmp,"ID_1")!=0) ){
       fprintf(stderr,"\t-> First column first row of file must be 'ID' or 'ID_1' is %s\n",tmp);
       exit(0);
@@ -257,45 +258,45 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
     } else if(ncols==1 && strcmp(tmp,"missing")==0 ){
       hasMissing = 1;
     }
-    
+
     if(ncols==2 && strcmp(tmp,"missing")==0){
       if(hasMissing){
-	fprintf(stderr,"\t-> Cannot have two 'missing' columns in .sample file\n");
-	exit(0);
+        fprintf(stderr,"\t-> Cannot have two 'missing' columns in .sample file\n");
+        exit(0);
       }
       hasMissing = 1;
     }
 
     //reads in which columns to read into design matrix - if specifed,
-    //otherwise it will just read all of the columns    
+    //otherwise it will just read all of the columns
     if(pheMap.count(tmp)>0 && whichPhe!=NULL){
       pheMap2[ncols] = 1;
     } else if(whichPhe==NULL){
       pheMap2[ncols] = 1;
     }
-    
+
     if(covMap.count(tmp)>0 && whichCov!=NULL){
       covMap2[ncols] = 1;
     } else if(whichCov==NULL){
       covMap2[ncols] = 1;
     }
-    
+
     ncols++;
-    tmp = strtok(NULL,delims);       
+    tmp = strtok(NULL,delims);
   }
-  
+
   std::map<char*, int>::iterator it;
-  
+
   for ( it = pheMap.begin(); it != pheMap.end(); it++ ){
-    //free strdup for keys 
+    //free strdup for keys
     free(it->first);
   }
 
   for ( it = covMap.begin(); it != covMap.end(); it++ ){
-    //free strdup for keys 
+    //free strdup for keys
     free(it->first);
   }
-  
+
   //read second line to know types of each
   std::vector <char> sampleMap;
   pFile.getline(buffer,lens);
@@ -307,7 +308,7 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
       fprintf(stderr,"\t-> First column second row of file must be '0' is %c\n",tmp[0]);
       exit(0);
     }
-    
+
     if(count<3 && hasID_2 && hasMissing && tmp[0]!='0'){
       fprintf(stderr,"\t-> Second and third column second row of file must be '0' is %c\n",tmp[0]);
       exit(0);
@@ -322,16 +323,16 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
       fprintf(stderr,"\t-> Second column second row of file must be '0' is %c\n",tmp[0]);
       exit(0);
     }
-        
+
     // keep track of which column is what - 0 ID or missing, D discrete covar, C continious covar, B discrete pheno, P continious pheno
     sampleMap.push_back(tmp[0]);
-    count++;    
+    count++;
     tmp = strtok(NULL,delims);
-    
+
   }
 
   assert(count==ncols);
-  
+
   //which column we are at
   int pheCols = 0;
   int covCols = 0;
@@ -339,74 +340,74 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
   int column = 0;
   // to keep track of pheno either only binary or quant
   int isBinary = 0;
-  
+
   std::list<double*> covRows;
   std::list<double*> pheRows;
 
   //NA string used in .sample file has to give -999 value for this
   const char * test = "NA";
-  
-  //create matrix for covar and pheno  
+
+  //create matrix for covar and pheno
   while(!pFile.eof()){
     pFile.getline(buffer,lens);
     if(strlen(buffer)==0)
       continue;
-    
+
     char *tok = strtok(buffer,delims);
-    
+
     std::list<double> covRow;
     std::list<double> pheRow;
 
     column = 0;
-    
+
     while(tok!=NULL){
 
       if(sampleMap[column] == '0'){
-	column++;
-	tok = strtok(NULL,delims);            
-	continue;
-	//covar
-      } else if(sampleMap[column] == 'D' || sampleMap[column] == 'C'){		
-	if(covMap2.count(column)>0){
-	  if(strcmp(tok,test)==0){
-	    covRow.push_back(-999);
-	  } else{	    
-	    covRow.push_back(atof(tok));
-	  }
-	}
-	column++;
-	//pheno
+        column++;
+        tok = strtok(NULL,delims);
+        continue;
+        //covar
+      } else if(sampleMap[column] == 'D' || sampleMap[column] == 'C'){
+        if(covMap2.count(column)>0){
+          if(strcmp(tok,test)==0){
+            covRow.push_back(-999);
+          } else{
+            covRow.push_back(atof(tok));
+          }
+        }
+        column++;
+        //pheno
       } else if(sampleMap[column] == 'B'){
-	//ok to have binary phenotype as double??
-	if(pheMap2.count(column)>0){
-	  if(strcmp(tok,test)==0){
-	    pheRow.push_back(-999);
-	  } else{	  
-	    pheRow.push_back(atof(tok));
-	  }
-	  isBinary = 1;
-	  hasPheno = 1;
-	}
-	column++;	
+        //ok to have binary phenotype as double??
+        if(pheMap2.count(column)>0){
+          if(strcmp(tok,test)==0){
+            pheRow.push_back(-999);
+          } else{
+            pheRow.push_back(atof(tok));
+          }
+          isBinary = 1;
+          hasPheno = 1;
+        }
+        column++;
       } else if(sampleMap[column] == 'P'){;
-	if(pheMap2.count(column)>0){
-	  if(strcmp(tok,test)==0){
-	    pheRow.push_back(-999);
-	  } else{	  
-	    pheRow.push_back(atof(tok));
-	  }	  
-	  assert(isBinary==0);
-	  hasPheno = 1;
-	}
-	column++;
+        if(pheMap2.count(column)>0){
+          if(strcmp(tok,test)==0){
+            pheRow.push_back(-999);
+          } else{
+            pheRow.push_back(atof(tok));
+          }
+          assert(isBinary==0);
+          hasPheno = 1;
+        }
+        column++;
       } else{
-	fprintf(stderr,"error .sample file has unreconigsed column type (D, C, B, 0 and P are allowed): %c \n",sampleMap[column]);
-	exit(0);
+        fprintf(stderr,"error .sample file has unreconigsed column type (D, C, B, 0 and P are allowed): %c \n",sampleMap[column]);
+        exit(0);
       }
-      
-      tok = strtok(NULL,delims);            
+
+      tok = strtok(NULL,delims);
     }
-    
+
     double *crows = new double[covRow.size()];
     double *prows = new double[pheRow.size()];
 
@@ -414,7 +415,7 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
     pheCols = pheRow.size();
 
     int i=0;
-    for(std::list<double>::iterator it=covRow.begin();it!=covRow.end();it++)    
+    for(std::list<double>::iterator it=covRow.begin();it!=covRow.end();it++)
       crows[i++]  = *it;
 
     i=0;
@@ -423,27 +424,27 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
 
     covRows.push_back(crows);
     pheRows.push_back(prows);
-  
+
   }
 
   //checks that any phenos have been read
   if(not hasPheno){
     fprintf(stderr,"##############################################\n");
     fprintf(stderr,"## WARNING: NO PHENOTYPE PRESENT IN .sample FILE!!\n");
-    fprintf(stderr,"##############################################\n");    
+    fprintf(stderr,"##############################################\n");
   }
 
   double **covData = new double*[covRows.size()];
   double **pheData = new double*[pheRows.size()];
-  
+
   int i = 0;
   for(std::list<double*>::iterator it=covRows.begin();it!=covRows.end();it++)
     covData[i++]  = *it;
-  
+
   i = 0;
   for(std::list<double*>::iterator it=pheRows.begin();it!=pheRows.end();it++)
     pheData[i++]  = *it;
-  
+
   doubleTrouble<double> dT;
   dT.matrix0=pheData;
   dT.x0 = pheRows.size();
@@ -460,7 +461,7 @@ angsd::doubleTrouble<double> angsd::getSample(const char *name,int lens, char* w
 
 
 void angsd::deleteDoubleTrouble(doubleTrouble<double> dT){
-  
+
   assert(dT.matrix0!=NULL && dT.matrix1!=NULL);
   for(int i=0;i<dT.x0;i++)
     delete [] dT.matrix0[i];
@@ -470,24 +471,24 @@ void angsd::deleteDoubleTrouble(doubleTrouble<double> dT){
     delete [] dT.matrix1[i];
   delete[] dT.matrix1;
   dT.matrix1=NULL;
-  
+
 }
 
 
 
 void angsd::printDoubleTrouble(doubleTrouble<double> dT,FILE *file){
-  
+
   fprintf(stderr,"Printing phe doubleTrouble:%p with dim=(%d,%d)\n",dT.matrix0,dT.x0,dT.y0);
   fprintf(stderr,"Printing cov doubleTrouble:%p with dim=(%d,%d)\n",dT.matrix1,dT.x1,dT.y1);
-  
+
   for(int xi=0;xi<dT.x0;xi++){
     for(int yi=0;yi<dT.y0;yi++)
       fprintf(file,"%f\t",dT.matrix0[xi][yi]);
     for(int yi=0;yi<dT.y1;yi++)
-      fprintf(file,"%f\t",dT.matrix1[xi][yi]);  
+      fprintf(file,"%f\t",dT.matrix1[xi][yi]);
     fprintf(file,"\n");
   }
-  
+
 }
 
 
@@ -495,16 +496,16 @@ void angsd::printDoubleTrouble(doubleTrouble<double> dT,FILE *file){
 double **angsd::get3likes(funkyPars *pars){
 
   double **loglike = NULL;
-  loglike = new double*[pars->numSites]; 
+  loglike = new double*[pars->numSites];
   for(int s=0;s<pars->numSites;s++)
     loglike[s] = new double[3*pars->nInd];
-  
+
   for(int s=0;s<pars->numSites;s++){
 
     if(pars->keepSites[s]==0)
       continue;
     for(int i=0;i<pars->nInd;i++){
-      
+
       //fprintf(stderr,"mm: %d\t%d\n",pars->major[s],pars->major[s]);
       //fprintf(stderr,"%s\t%d\t%c\t%c\t",pars->sites[s].chromo,pars->sites[s].position+1,intToRef[pars->major[s]],intToRef[pars->minor[s]]);
 
@@ -520,33 +521,33 @@ double **angsd::get3likes(funkyPars *pars){
 double **angsd::get3likesRescale(funkyPars *pars){
 
   double **loglike = NULL;
-  loglike = new double*[pars->numSites]; 
+  loglike = new double*[pars->numSites];
   for(int s=0;s<pars->numSites;s++)
     loglike[s] = new double[3*pars->nInd];
-  
+
   for(int s=0;s<pars->numSites;s++){
 
     if(pars->keepSites[s]==0)
       continue;
     for(int i=0;i<pars->nInd;i++){
       /*(
-	fprintf(stderr,"refid: %d posi:%d pars->major:%p\n",pars->refId,pars->posi[s]+1,pars->major);
-	fprintf(stderr,"mm: %d\t%d\n",pars->major[s],pars->major[s]);
-	fprintf(stderr,"%d\t%d\t%c\t%c\t",pars->refId,pars->posi[s]+1,intToRef[pars->major[s]],intToRef[pars->minor[s]]);
+        fprintf(stderr,"refid: %d posi:%d pars->major:%p\n",pars->refId,pars->posi[s]+1,pars->major);
+        fprintf(stderr,"mm: %d\t%d\n",pars->major[s],pars->major[s]);
+        fprintf(stderr,"%d\t%d\t%c\t%c\t",pars->refId,pars->posi[s]+1,intToRef[pars->major[s]],intToRef[pars->minor[s]]);
       */
       loglike[s][i*3+0]=pars->likes[s][i*10+angsd::majorminor[pars->major[s]][pars->major[s]]];
       loglike[s][i*3+1]=pars->likes[s][i*10+angsd::majorminor[pars->major[s]][pars->minor[s]]];
       loglike[s][i*3+2]=pars->likes[s][i*10+angsd::majorminor[pars->minor[s]][pars->minor[s]]];
       double mmax = loglike[s][i*3+0];
       for(int ii=1;ii<3;ii++)
-	if(loglike[s][i*3+ii]>mmax)
-	  mmax = loglike[s][i*3+ii];
+        if(loglike[s][i*3+ii]>mmax)
+          mmax = loglike[s][i*3+ii];
       for(int ii=0;(!std::isinf(mmax))&&ii<3;ii++){
-	loglike[s][i*3+ii] -=mmax;
-	if(std::isnan(loglike[s][i*3+ii])){
-	  fprintf(stderr,"mmax: %f\n",mmax);
-	  exit(0);
-	}
+        loglike[s][i*3+ii] -=mmax;
+        if(std::isnan(loglike[s][i*3+ii])){
+          fprintf(stderr,"mmax: %f\n",mmax);
+          exit(0);
+        }
       }
     }
   }
@@ -556,16 +557,16 @@ double **angsd::get3likesRescale(funkyPars *pars){
 
 
 double **angsd::get3likesRMlow(funkyPars *pars,int *keepInd){
- 
+
   int nKeep=0;
   for(int i=0;i<pars->nInd;i++){
     if(keepInd[i])
       nKeep++;
   }
- 
+
   double **loglike = NULL;
-  loglike = new double*[pars->numSites]; 
- 
+  loglike = new double*[pars->numSites];
+
   for(int s=0;s<pars->numSites;s++){
      loglike[s] = new double[3*nKeep];
   }
@@ -575,19 +576,19 @@ double **angsd::get3likesRMlow(funkyPars *pars,int *keepInd){
     if(pars->keepSites[s]==0)//always extract this, to avoid problems in multitrheading
       continue;
     int count=0;
-    
+
 
     for(int i=0;i<pars->nInd;i++){
       if(keepInd[i]==0)
-	continue;
+        continue;
       loglike[s][count*3+0]=pars->likes[s][i*10+angsd::majorminor[pars->major[s]][pars->major[s]]];
       loglike[s][count*3+1]=pars->likes[s][i*10+angsd::majorminor[pars->major[s]][pars->minor[s]]];
       loglike[s][count*3+2]=pars->likes[s][i*10+angsd::majorminor[pars->minor[s]][pars->minor[s]]];
-   
+
       if(loglike[s][count*3+0] < -20 && loglike[s][count*3+1] < -20 && loglike[s][count*3+2] < -20){
-	loglike[s][count*3+0] = 0;
-	loglike[s][count*3+1] = 0;
-	loglike[s][count*3+2] = 0;
+        loglike[s][count*3+0] = 0;
+        loglike[s][count*3+1] = 0;
+        loglike[s][count*3+2] = 0;
 
       }
       count++;
@@ -598,16 +599,16 @@ double **angsd::get3likesRMlow(funkyPars *pars,int *keepInd){
 }
 
 double **angsd::get3likes(funkyPars *pars,int *keepInd){
- 
+
   int nKeep=0;
   for(int i=0;i<pars->nInd;i++){
     if(keepInd[i])
       nKeep++;
   }
- 
+
   double **loglike = NULL;
-  loglike = new double*[pars->numSites]; 
- 
+  loglike = new double*[pars->numSites];
+
   for(int s=0;s<pars->numSites;s++){
      loglike[s] = new double[3*nKeep];
   }
@@ -617,19 +618,19 @@ double **angsd::get3likes(funkyPars *pars,int *keepInd){
     if(pars->keepSites[s]==0)//always extract this, to avoid problems in multitrheading
       continue;
     int count=0;
-    
+
 
     for(int i=0;i<pars->nInd;i++){
       if(keepInd[i]==0)
-	continue;
-    
+        continue;
+
       loglike[s][count*3+0]=pars->likes[s][i*10+angsd::majorminor[pars->major[s]][pars->major[s]]];
       loglike[s][count*3+1]=pars->likes[s][i*10+angsd::majorminor[pars->major[s]][pars->minor[s]]];
       loglike[s][count*3+2]=pars->likes[s][i*10+angsd::majorminor[pars->minor[s]][pars->minor[s]]];
       count++;
     }
   }
- 
+
   return loglike;
 
 }
@@ -643,19 +644,19 @@ double **angsd::getlikes(funkyPars *pars,int *keepInd){
   }
 
   double **loglike = NULL;
-  loglike = new double*[pars->numSites]; 
+  loglike = new double*[pars->numSites];
   for(int s=0;s<pars->numSites;s++)
     loglike[s] = new double[10*nKeep];
-  
+
   for(int s=0;s<pars->numSites;s++){
     if(pars->keepSites[s]==0)
       continue;
     int count=0;
     for(int i=0;i<pars->nInd;i++){
       if(keepInd[i]==0)
-	continue;
+        continue;
       for(int g=0;g<10;g++)
-	loglike[s][count*10+g]=pars->likes[s][i*10+g];
+        loglike[s][count*10+g]=pars->likes[s][i*10+g];
       count++;
     }
   }
@@ -674,17 +675,17 @@ int angsd::matinv( double x[], int n, int m, double space[])
 {
   //from rasmus nielsens code
   /* x[n*m]  ... m>=n*/
-  register int i,j,k; 
+  register int i,j,k;
   int *irow=(int*) space;
   double ee=1.0e-20, t,t1,xmax;
   double det=1.0;
-  
+
   FOR (i,n)  {
     xmax = 0.;
     for (j=i; j<n; j++) {
       if (xmax < fabs(x[j*m+i]))  {
-	xmax = fabs( x[j*m+i] );
-	irow[i] = j;
+        xmax = fabs( x[j*m+i] );
+        irow[i] = j;
       }
     }
     det *= xmax;
@@ -694,9 +695,9 @@ int angsd::matinv( double x[], int n, int m, double space[])
     }
     if (irow[i] != i) {
       FOR (j,m) {
-	t = x[i*m+j];
-	x[i*m+j] = x[irow[i] * m + j];
-	x[ irow[i] * m + j] = t;
+        t = x[i*m+j];
+        x[i*m+j] = x[irow[i] * m + j];
+        x[ irow[i] * m + j] = t;
       }
     }
     t = 1./x[i*m+i];
@@ -727,12 +728,12 @@ void angsd::logrescale(double *ary,int len){
   for(int i=1;i<len;i++)
     if(ary[i]>ary[maxId])
       maxId=i;
-  
+
   double maxVal = ary[maxId];
   for(int i=0;i<len;i++)
     ary[i] -= maxVal;
-  
-  
+
+
 }
 
 void print_array(FILE *fp,double *ary,int len){
@@ -763,7 +764,7 @@ double angsd::myComb2(int k,int r, int j){
 
   double fac1= lbico(r,j)+lbico(2*k-r,2-j);
   double fac2=lbico(2*k,2);
-  
+
   return exp(fac1-fac2);
 }
 
@@ -781,7 +782,7 @@ double *angsd::readDouble(const char*fname,int hint){
   std::vector<double> res;
   res.push_back(atof(strtok(buf,"\t\n ")));
   char *tok=NULL;
-  while((tok=strtok(NULL,"\t\n "))) {  
+  while((tok=strtok(NULL,"\t\n "))) {
     //fprintf(stderr,"%s\n",tok);
     res.push_back(atof(tok));
 
@@ -791,7 +792,7 @@ double *angsd::readDouble(const char*fname,int hint){
     fprintf(stderr,"\t-> File: \'%s\' should contain %d values, but has %lu\n",fname,hint,res.size());
     fprintf(stderr,"\t-> If you are supplying an estimated sfs, make sure your input file is a single line (an estimate for a single region)\n");
     for(size_t i=0;i<res.size();i++)
-      
+
       fprintf(stderr,"%zu=%f\n",i,res[i]);
     exit(0);
   }
@@ -808,12 +809,12 @@ int angsd::whichMax(double *d,int len){
     if(d[i]>d[r])
       r=i;
   //now check if site doesnt have data.
-  
+
   if(r==0){//only check if nothing is higher than the first
     for(int i=1;i<len;i++)
       if(d[i]!=d[0])//we see a diffrence so we have information
-	return r;
-    return -1;//we didnt have information 
+        return r;
+    return -1;//we didnt have information
   }else
     return r;
 }
@@ -831,6 +832,7 @@ int angsd::getRandomCount(suint *counts, int i,int depth){
   if(depth==0)
     return 4;
 
+  srand(time(0));
   int j = std::rand() % depth;
   int cumSum=0;
   int res=4;
@@ -860,7 +862,7 @@ int angsd::getMaxCount(suint *counts,int i, int depth){
     return 4;
 
   int whichMax = 0;
-  int nMax=1;  
+  int nMax=1;
   for(int b=1;b<4;b++){
     if (counts[b+4*i]>counts[whichMax+4*i]){
       whichMax = b;
@@ -876,15 +878,15 @@ int angsd::getMaxCount(suint *counts,int i, int depth){
     int r = std::rand() % nMax;
     for(int b=1;b<4;b++){
       if(counts[b+4*i]==counts[whichMax+4*i]){
-	if(r==j){
-	  whichMax=b;
-	  break;
-	}
-	j++;
+        if(r==j){
+          whichMax=b;
+          break;
+        }
+        j++;
       }
-    }     
+    }
   }
-  
+
 
   return whichMax;
 }
@@ -982,13 +984,13 @@ int angsd::getRandomCountTotal(suint *counts, int nInd){
 
   size_t totalCounts[4]={0,0,0,0};
   for(int i=0;i<4*nInd;i++)
-    totalCounts[i%4] +=counts[i];   
-  
+    totalCounts[i%4] +=counts[i];
+
 
   size_t depth=0;
   for( int b = 0; b < 4; b++ )
     depth+=totalCounts[b];
-  
+
 
   if(depth==0)
     return 4;
@@ -1014,19 +1016,19 @@ int angsd::getMaxCountTotal(suint *counts,int nInd){
 
   size_t totalCounts[4]={0,0,0,0};
   for(int i=0;i<4*nInd;i++)
-    totalCounts[i%4] +=counts[i];   
-  
+    totalCounts[i%4] +=counts[i];
+
 
   size_t depth=0;
   for( int b = 0; b < 4; b++ )
     depth+=totalCounts[b];
-  
+
 
   if(depth==0)
     return 4;
 
   int whichMax = 0;
-  int nMax=1;  
+  int nMax=1;
   for(int b=1;b<4;b++){
     if ( totalCounts[b] > totalCounts[whichMax] ){
       whichMax = b;
@@ -1042,15 +1044,15 @@ int angsd::getMaxCountTotal(suint *counts,int nInd){
     int r = std::rand() % nMax;
      for(int b=1;b<4;b++){
        if( totalCounts[b] == totalCounts[whichMax] ){
-	 if(r==j){
-	   whichMax=b;
-	   break;
-	 }
-	 j++;
+         if(r==j){
+           whichMax=b;
+           break;
+         }
+         j++;
        }
 
      }
-      
+
   }
 
 
@@ -1064,13 +1066,13 @@ int angsd::getIupacCountTotal(suint *counts,int nInd, double iRatio){
 
   size_t totalCounts[4]={0,0,0,0};
   for(int i=0;i<4*nInd;i++)
-    totalCounts[i%4] +=counts[i];   
-  
+    totalCounts[i%4] +=counts[i];
+
 
   size_t depth=0;
   for( int b = 0; b < 4; b++ )
     depth+=totalCounts[b];
-  
+
 
   if(depth==0)
     return 14;
@@ -1163,13 +1165,13 @@ int ludcmp(double **a, int *indx, double &d,int n)
     big=0;
     for (int j=0; j<n; j++){
       //fprintf(stderr,"%f\t",a[i][j]);
-      if ((temp=fabs(a[i][j])) > big) 
-	big=temp;
+      if ((temp=fabs(a[i][j])) > big)
+        big=temp;
     }
     if(big==0){
       //fprintf(stderr,"singular matrix in ludcmp");
       return(1);
-	//    assert(big!=0) ;
+        //    assert(big!=0) ;
 
     }
     vv[i]=1/big;
@@ -1178,37 +1180,37 @@ int ludcmp(double **a, int *indx, double &d,int n)
   for (int j=0; j<n; j++){
     for (int i=0; i<j; i++){
       sum = a[i][j];
-      for (int k=0; k<i; k++) 
-	sum -= a[i][k] * a[k][j];
+      for (int k=0; k<i; k++)
+        sum -= a[i][k] * a[k][j];
       a[i][j]=sum;
     }
     big=0;
     for (int i=j; i<n; i++)	{
       sum=a[i][j];
       for (int k=0; k<j; k++)
-	sum -= a[i][k] * a[k][j];
+        sum -= a[i][k] * a[k][j];
       a[i][j]=sum;
       if ((dum=vv[i]*fabs(sum)) >= big) {
-	big = dum;
-	imax = i;
+        big = dum;
+        imax = i;
       }
     }
     if (j != imax){
       for (int k=0; k<n; k++){
-	dum=a[imax][k];
-	a[imax][k]=a[j][k];
-	a[j][k]=dum;
+        dum=a[imax][k];
+        a[imax][k]=a[j][k];
+        a[j][k]=dum;
       }
       d = -d;
       vv[imax]=vv[j];
     }
     indx[j]=imax;
-    if (a[j][j] == 0) 
+    if (a[j][j] == 0)
       a[j][j] = 1.0e-20;
     if (j != n-1){
       dum = 1/(a[j][j]);
-      for (int i=j+1; i<n; i++) 
-	a[i][j] *= dum;
+      for (int i=j+1; i<n; i++)
+        a[i][j] *= dum;
     }
   }
   return 0;
@@ -1226,15 +1228,15 @@ void lubksb(double **a, int *indx, double *b,int n)
     sum=b[ip];
     b[ip]=b[i];
     if (ii != 0)
-      for (int j=ii-1; j<i; j++) 
-	sum -= a[i][j]*b[j];
-    else if (sum != 0.0) 
+      for (int j=ii-1; j<i; j++)
+        sum -= a[i][j]*b[j];
+    else if (sum != 0.0)
       ii=i+1;
     b[i]=sum;
   }
   for (int i=n-1; i>=0; i--){
     sum=b[i];
-    for (int j=i+1; j<n; j++) 
+    for (int j=i+1; j<n; j++)
       sum -= a[i][j]*b[j];
     b[i]=sum/a[i][i];
   }
@@ -1282,18 +1284,18 @@ int angsd::svd_inverse(double mat[],int xLen, int yLen){
   int singular=ludcmp(tm,indx,d,xLen);
   if(singular)
     return 1 ;
-  
+
   for (int j=0; j<xLen; j++)
     {
       for (int i=0; i<xLen; i++)
-	col[i]=0;
+        col[i]=0;
       col[j]=1;
       lubksb(tm,indx,col,xLen);
-      for (int i=0; i<xLen; i++) 
-	y[j*xLen+i]=col[i];
+      for (int i=0; i<xLen; i++)
+        y[j*xLen+i]=col[i];
     }
-  
-  
+
+
   for (int j=0; j<yLen; j++)
     for (int i=0; i<xLen; i++)
       mat[j*xLen+i]=y[j*xLen+i];
@@ -1317,21 +1319,21 @@ double angsd::dnorm(double x,double mean,double sd,int ifLog){
 
   double lower_bound=1e-20;//emil - not for users
 
-  if(ifLog){    
+  if(ifLog){
     if(val<lower_bound){
       return(log(lower_bound));
     } else{
       return (log(fac)+log(val));
-    }    
+    }
   } else{
     // if val is 0 because exp(-(x-mean)*(x-mean)) is due to underflow, returns low value
-    if(val<lower_bound){      
+    if(val<lower_bound){
       return(lower_bound);
     } else{
       return fac*val;
     }
   }
-  
+
 }
 
 //function for getting probability of bernoulli distribution, has safeguards against underflow
@@ -1340,13 +1342,13 @@ double angsd::bernoulli(int k, double p, int ifLog){
   // if p is 0 or 1, cannot do log
   // however this because of over/underlow and p i just very close 0 or 1
   double lower_bound=1e-20;//emil - not for users
-  
+
   if(p>1-lower_bound){
     p = 1-lower_bound;
   } else if(p<lower_bound){
     p = lower_bound;
   }
-  
+
   if(ifLog){
     return( log(pow(p,k)*pow(1-p,1-k)) );
   } else{
@@ -1413,7 +1415,7 @@ char intToRef[5] = {'A','C','G','T','N'};
 
 char intToIupac[15] = {'A','C','G','T','R','Y','S','W','K','M','B','D','H','V','N'};
 
-// 
+//
 char refToChar[256] = {
     0,1,2,3,4,4,4,4,4,4,4,4,4,4,4,4,//15
     4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,//31
@@ -1459,19 +1461,19 @@ double angsd::estFreq(double *loglike,int numInds){
   int iter=100;
 
   int it=0;
-  
+
   for(it=0;it<iter;it++){
     sum=0;
     for(int i=0;i<numInds;i++){
-     
+
       W0=exp(loglike[i*3+0])*pow(1-p,2);
       W1=exp(loglike[i*3+1])*2*p*(1-p);
       W2=exp(loglike[i*3+2])*(pow(p,2));
       sum+=(W1+2*W2)/(2*(W0+W1+W2));
       //  fprintf(stderr,"%f %f %f\n",W0,W1,W2);
       if(0&&std::isnan(sum)){
-	//fprintf(stderr,"PRE[%d]: W %f\t%f\t%f sum=%f\n",i,W0,W1,W2,sum);
-	exit(0);
+        //fprintf(stderr,"PRE[%d]: W %f\t%f\t%f sum=%f\n",i,W0,W1,W2,sum);
+        exit(0);
       }
     }
 
@@ -1491,15 +1493,15 @@ double angsd::estFreq(double *loglike,int numInds){
     fprintf(stderr,"used logLike (3*length(keep))=%d\n",numInds);
 
     for(int ii=0;1&&ii<numInds;ii++){
-    
+
       fprintf(stderr,"1\t");
       for(int gg=0;gg<3;gg++)
-	fprintf(stderr,"%f\t",loglike[ii*3+gg]);
+        fprintf(stderr,"%f\t",loglike[ii*3+gg]);
       fprintf(stderr,"\n");
     }
     sum=0;
     for(int i=0;i<numInds;i++){
-     
+
       W0=exp(loglike[i*3+0])*pow(1-p,2);
       W1=exp(loglike[i*3+1])*2*p*(1-p);
       W2=exp(loglike[i*3+2])*(pow(p,2));
@@ -1509,7 +1511,7 @@ double angsd::estFreq(double *loglike,int numInds){
     p=-999;
     //exit(0);
   }
-  
+
   return(p);
 }
 
